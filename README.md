@@ -39,7 +39,7 @@ Get it from [Releases](../../releases).
 
 - **Windows**: download `LookSnap-Setup-x.x.x.exe` and double-click. It installs in a few seconds and opens by itself (no "Next" buttons, no admin rights). It then lives in the system tray as an eye icon; right-click it to quit. To uninstall, use Settings → Apps.
   - On first run Windows may show a blue "Windows protected your PC" screen. That's because this project doesn't pay for a Microsoft code-signing certificate, like most small open-source tools. Click "More info" → "Run anyway". If you'd rather not, read the source or build it yourself (below).
-- **macOS (beta)**: `LookSnap-x.x.x-mac.dmg`. The author doesn't own a Mac, so it hasn't been tested on real hardware. Allow Camera, Screen Recording and Accessibility in System Settings → Privacy & Security. The app isn't notarized, so right-click → Open the first time.
+- **macOS (beta)**: `LookSnap-x.x.x-mac-arm64.dmg` (Apple silicon) or `LookSnap-x.x.x-mac-x64.dmg` (Intel). The author doesn't own a Mac, so it hasn't been tested on real hardware. Allow Camera, Screen Recording and Accessibility in System Settings → Privacy & Security. The app isn't notarized, so right-click → Open the first time.
 
 The first launch asks you to look at 5 dots to calibrate (about 10 seconds). In Settings you can change:
 

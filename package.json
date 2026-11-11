@@ -43,7 +43,7 @@
     "mac": {
       "icon": "assets/icon.icns",
       "category": "public.app-category.productivity",
-      "artifactName": "LookSnap-${version}-mac.dmg",
+      "artifactName": "LookSnap-${version}-mac-${arch}.dmg",
       "extendInfo": {
         "NSCameraUsageDescription": "LookSnap 用摄像头判断你的头朝向，画面只在本机处理，不上传。"
       }
