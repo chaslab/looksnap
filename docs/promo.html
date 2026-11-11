@@ -65,14 +65,16 @@
   #demo{width:1200px;height:750px;background:#fbfbfd}
   #demo .cap{top:22px;font-size:30px;font-weight:800}
   #demo .cap small{display:block;font-size:17px;color:#888;font-weight:400;margin-top:2px}
-  /* ---------- 有 bug 的网页 ---------- */
-  .site{position:absolute;left:0;right:0;top:30px;bottom:0;background:linear-gradient(180deg,#f6f8ff,#eef1fb)}
-  .card{position:absolute;left:50%;top:14%;width:62%;transform:translateX(-50%);background:#fff;border-radius:14px;box-shadow:0 8px 24px rgba(30,40,90,.10);padding:22px 22px 26px}
-  .card h3{font-size:20px;color:#1d1d1f;margin-bottom:14px}
-  .card .f{height:36px;border-radius:9px;border:1px solid #dde0ea;margin-top:10px;font-size:13px;color:#aab;display:flex;align-items:center;padding-left:12px}
-  .card .btn{position:relative;margin-top:16px;height:40px;width:100%;border-radius:10px;background:#3d6bef;color:#fff;font-weight:700;font-size:15px;display:flex;align-items:center;justify-content:center;
-       left:30%;transform:rotate(7deg);box-shadow:0 6px 16px rgba(61,107,239,.35)}
-  .card .lk{margin-top:14px;font-size:12.5px;color:#8a8fa3}
+  /* ---------- 报告文档 ---------- */
+  .docb{position:absolute;left:0;right:0;top:30px;bottom:0;background:#fff;padding:18px 26px}
+  .docb h4{font-size:16px;color:#1d1d1f;margin:4px 0 10px}
+  .docb .l{height:8px;border-radius:4px;background:#e8e9ef;margin:8px 0}
+  .fig{margin-top:14px;display:inline-block;padding:12px 14px 10px;border-radius:10px;background:#f7f8fc}
+  .bars{display:flex;align-items:flex-end;gap:16px;height:130px}
+  .bars div{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;font-size:11.5px;color:#555}
+  .bars b{display:block;width:30px;border-radius:5px 5px 0 0;background:linear-gradient(#5b8cff,#3d6bef);margin:3px 0}
+  .bars div:nth-child(3) b{background:linear-gradient(#ff8a65,#f4511e)}
+  .fig .note{font-size:10.5px;color:#9a9fb0;margin-top:6px}
   .msg.img{padding:6px;background:#0a84ff;width:fit-content}
   .msg.img .shot{width:150px;height:90px;border-radius:8px;background:#fff;position:relative;overflow:hidden}
   .msg.img small{display:block;color:#fff;padding:5px 4px 1px}
@@ -94,8 +96,9 @@
     <div class="msg a hide" id="mFix" data-t="fix"></div>
     <div class="input"><span class="thumb"><div class="mini"></div></span><span class="ph"></span></div></div>
   <div class="win artw"><div class="bar"><i></i><i></i><i></i><span data-t="doc"></span></div>
-    <div class="site"><div class="card"><h3 data-t="welcome"></h3><div class="f" data-t="email"></div><div class="f" data-t="pw"></div>
-      <div class="btn" data-t="login"></div><div class="lk" data-t="forgot"></div></div></div></div>
+    <div class="docb"><h4 data-t="h4"></h4><div class="l" style="width:92%"></div><div class="l" style="width:70%"></div>
+      <div class="fig"><div class="bars"><div><span>86</span><b style="height:72px"></b>Q1</div><div><span>98</span><b style="height:84px"></b>Q2</div><div><span>42</span><b style="height:36px"></b>Q3</div><div><span>105</span><b style="height:90px"></b>Q4</div></div><div class="note" data-t="note"></div></div>
+      <div class="l" style="width:88%;margin-top:16px"></div><div class="l" style="width:64%"></div></div></div>
 </template>
 
 <div id="hero" class="scene">
@@ -151,20 +154,20 @@ function fillT(root) { root.querySelectorAll('[data-t]').forEach(e => e.innerHTM
 
 const LANG = (location.hash.split('-')[1] || 'zh');
 const T = {
-  zh: { chat: 'AI 助手', q: '登录页的按钮好像跑偏了，帮我看看', a: '好的。把有问题的地方截给我看看？', here: '就是这里', fix: '看到了：「登录」按钮跑到卡片外面了，还歪了。多半是按钮的 left 和 rotate 写错了，删掉就好。',
-    ph: '输入消息…', doc: 'localhost:3000 · 我的网站', welcome: '欢迎回来', email: '邮箱', pw: '密码', login: '登录', forgot: '忘记密码？',
+  zh: { chat: 'AI 助手', q: '报告里这张图，第三季度怎么掉这么多？', a: '把那张图截给我看看？', here: '这张', fix: '看到了。图下面有行小字：「Q3 起按新口径统计」。所以 Q3 可能不是真掉了，是统计方法变了。',
+    ph: '输入消息…', doc: '季度报告.pdf', h4: '二、各季度销售额（万元）', note: '注：Q3 起按新口径统计',
     sub: '看哪截哪', tag1: '跟 AI 聊天要截图？<br>转一下头，圈一块，粘贴发送。', mac: 'macOS（测试版）', local: '本地运行', free: '开源免费',
     camYou: '摄像头里的你', copied: '已复制到剪贴板 ✓',
-    caps: [[0, 'AI 让你把问题截给它看', '手不在鼠标上？不用找鼠标'], [0.3, '按一下 Ctrl+Alt', '框出现在你脸朝着的地方'], [1.3, '转一下头', '框跟着挪过去，大概圈住就行'], [3.9, '再按一下 Ctrl+Alt', '截好了，在剪贴板里'], [5.0, 'Ctrl+V，发送', 'AI 一看就懂']] },
-  en: { chat: 'AI Assistant', q: 'The login button on my page looks off. Can you check?', a: 'Sure. Can you screenshot the part that looks wrong?', here: 'Right here', fix: 'Got it: the Log in button is sticking out of the card and tilted. Probably a stray left/rotate on the button. Remove those.',
-    ph: 'Message…', doc: 'localhost:3000 · My site', welcome: 'Welcome back', email: 'Email', pw: 'Password', login: 'Log in', forgot: 'Forgot password?',
+    caps: [[0, 'AI 让你把图截给它看', '手不在鼠标上？不用找鼠标'], [0.3, '按一下 Ctrl+Alt', '框出现在你脸朝着的地方'], [1.3, '转一下头', '框跟着挪过去，大概圈住就行'], [3.9, '再按一下 Ctrl+Alt', '截好了，在剪贴板里'], [5.0, 'Ctrl+V，发送', 'AI 一看就懂']] },
+  en: { chat: 'AI Assistant', q: 'Why does Q3 drop so much in the chart in my report?', a: 'Can you screenshot that chart for me?', here: 'This one', fix: 'Got it. There\'s a small note under the chart: "Q3 onward uses the new method." So Q3 may not have really dropped; the way it\'s counted changed.',
+    ph: 'Message…', doc: 'Quarterly report.pdf', h4: '2. Sales by quarter ($k)', note: 'Note: Q3 onward uses the new method',
     sub: 'Snap where you look', tag1: 'Need to show your AI something?<br>Turn your head, frame it, paste.', mac: 'macOS (beta)', local: '100% local', free: 'Open source',
     camYou: 'You, on camera', copied: 'Copied to clipboard ✓',
-    caps: [[0, 'Your AI asks for a screenshot', 'Hand not on the mouse? No problem'], [0.3, 'Tap Ctrl+Alt', 'A frame appears where you\'re facing'], [1.3, 'Turn your head', 'The frame glides over. Roughly is fine'], [3.9, 'Tap Ctrl+Alt again', 'Captured, now on your clipboard'], [5.0, 'Ctrl+V, send', 'Your AI sees exactly what you see']] } }[LANG];
+    caps: [[0, 'Your AI asks to see it', 'Hand not on the mouse? No problem'], [0.3, 'Tap Ctrl+Alt', 'A frame appears where you\'re facing'], [1.3, 'Turn your head', 'The frame glides over. Roughly is fine'], [3.9, 'Tap Ctrl+Alt again', 'Captured, now on your clipboard'], [5.0, 'Ctrl+V, send', 'Your AI sees exactly what you see']] } }[LANG];
 document.documentElement.lang = LANG === 'en' ? 'en' : 'zh-CN';
 function fillT(root) { root.querySelectorAll('[data-t]').forEach(e => e.innerHTML = T[e.dataset.t]); }
 // 缩略图：一小块卡片 + 歪掉的蓝按钮
-const MINI = '<div style="position:absolute;inset:0;background:#eef1fb"></div><div style="position:absolute;left:8%;top:-10%;width:62%;height:90%;background:#fff;border-radius:6px"></div><div style="position:absolute;left:40%;top:46%;width:56%;height:26%;background:#3d6bef;border-radius:5px;transform:rotate(7deg)"></div>';
+const MINI = '<div style="position:absolute;inset:0;background:#f7f8fc;display:flex;align-items:flex-end;justify-content:center;gap:9%;padding:0 10% 18%">' + [62, 72, 30, 78].map((h, i) => `<b style="display:block;width:13%;height:${h}%;border-radius:3px 3px 0 0;background:${i == 2 ? '#f4511e' : '#4f7df5'}"></b>`).join('') + '</div><div style="position:absolute;left:10%;bottom:6%;width:55%;height:5%;border-radius:2px;background:#c8cbd6"></div>';
 function buildDesk(el) {
   el.innerHTML = $('#tplDesk').innerHTML; fillT(el);
   el.querySelectorAll('.mini').forEach(m => { m.style.cssText = 'position:absolute;inset:0'; m.innerHTML = MINI; });
@@ -177,11 +180,11 @@ function buildDesk(el) {
   el.appendChild(g); return g;
 }
 function bugBox(d) { // 粗略框住歪掉的按钮
-  const b = d.querySelector('.btn').getBoundingClientRect(), r = d.getBoundingClientRect();
+  const b = d.querySelector('.fig').getBoundingClientRect(), r = d.getBoundingClientRect();
   const a = d.querySelector('.artw').getBoundingClientRect();
-  const w = b.width + 100, h = b.height + 96;
-  const x = Math.min(b.left - r.left + b.width / 2 - 10, a.right - r.left - w / 2 - 10);
-  return { x, y: b.top - r.top + b.height / 2 + 4, w, h };
+  const w = b.width + 56, h = b.height + 50;
+  const x = Math.min(b.left - r.left + b.width / 2 + 6, a.right - r.left - w / 2 - 10);
+  return { x, y: b.top - r.top + b.height / 2 + 2, w, h };
 }
 function place(g, x, y, w, h) { Object.assign(g.style, { left: x - w / 2 + 'px', top: y - h / 2 + 'px', width: w + 'px', height: h + 'px' }); }
 const ease = t => t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
