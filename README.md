@@ -10,9 +10,9 @@
 
 ## What it does
 
-When you chat with an AI, you often need to show it something: an error, a part of a page that looks wrong, a chart you don't get. On a laptop with no mouse, dragging a screenshot box on the trackpad is a chore.
+Your laptop's trackpad is a pain, but you don't want to carry a mouse around. Taking a screenshot usually means pressing a shortcut, then clicking and dragging to set the area.
 
-LookSnap lets you take that screenshot by turning your head. It doesn't need to be precise. Roughly framing the part you want the AI to see is enough:
+When you're chatting with an AI, though, a rough area is usually enough for it to understand. LookSnap is built for that: one shortcut, plus a turn of your head. The frame doesn't need to be precise, so it's quick.
 
 1. Tap the shortcut (default `Ctrl + Alt`: press, then release). A frame appears where your nose is pointing.
 2. Turn your head slightly and the frame glides that way. Face forward again and it stops.
