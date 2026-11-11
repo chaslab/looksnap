@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>LookSnap promo</title>
+<style>
+  *{box-sizing:border-box;margin:0}
+  body{font-family:"Noto Sans CJK SC","PingFang SC","Microsoft YaHei",sans-serif;background:#fff;overflow:hidden}
+  .scene{display:none;position:relative;overflow:hidden}
+  .scene.on{display:block}
+  /* ---------- 假桌面 ---------- */
+  .desk{position:absolute;overflow:hidden;border-radius:18px;background:linear-gradient(135deg,#6f9cff 0%,#9a86ff 48%,#ff9cb3 100%)}
+  .win{position:absolute;border-radius:12px;background:rgba(255,255,255,.96);box-shadow:0 14px 40px rgba(20,20,60,.22);overflow:hidden}
+  .bar{height:30px;display:flex;align-items:center;gap:7px;padding-left:12px;background:#f3f3f6;font-size:13px;color:#555}
+  .bar i{width:11px;height:11px;border-radius:50%;background:#ff5f57}.bar i:nth-child(2){background:#febc2e}.bar i:nth-child(3){background:#28c840}
+  .bar span{margin-left:10px}
+  .msg{margin:12px 14px;padding:9px 12px;border-radius:12px;font-size:13.5px;line-height:1.5;max-width:78%}
+  .msg.u{background:#0a84ff;color:#fff;margin-left:auto}
+  .msg.a{background:#f0f0f4;color:#222}
+  .input{position:absolute;left:12px;right:12px;bottom:12px;height:46px;border-radius:12px;border:1px solid #ddd;background:#fff;display:flex;align-items:center;padding:0 10px;gap:8px;color:#999;font-size:13.5px}
+  .thumb{width:58px;height:34px;border-radius:6px;background:#fff;border:1px solid #ddd;overflow:hidden;display:none}
+  .thumb.on{display:block}
+  .chart{position:absolute;display:flex;align-items:flex-end;gap:10px;padding:12px 14px 10px;border-radius:10px;background:#f7f8fc}
+  .chart b{display:block;width:26px;border-radius:5px 5px 0 0;background:linear-gradient(#5b8cff,#3d6bef)}
+  .chart b:nth-child(3){background:linear-gradient(#ff8a65,#f4511e)}
+  .lines .l{height:9px;border-radius:5px;background:#e6e7ee;margin:10px 16px}
+  /* ---------- 玻璃框（跟软件里一样） ---------- */
+  .glass{position:absolute;border-radius:16px}
+  .glass .rim{position:absolute;inset:0;border-radius:16px;padding:10px;
+       -webkit-backdrop-filter:url(#lens) saturate(1.35) brightness(1.07);backdrop-filter:url(#lens) saturate(1.35) brightness(1.07);
+       -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
+  .glass .sheen{position:absolute;inset:0;border-radius:16px;padding:10px;
+       background:linear-gradient(135deg,rgba(255,255,255,.5),rgba(255,255,255,.06) 28%,rgba(255,255,255,0) 60%,rgba(255,255,255,.22));
+       -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
+  .glass .edge{position:absolute;inset:0;border-radius:16px;border:1.5px solid rgba(255,255,255,.9);
+       box-shadow:inset 0 1px 2px rgba(255,255,255,.9),0 0 0 .5px rgba(0,0,0,.3),0 16px 40px rgba(0,0,0,.22);transition:border-color .2s,box-shadow .2s}
+  .glass.done .edge{border-color:#34c759;box-shadow:0 0 0 3px #34c759,0 16px 40px rgba(0,0,0,.22)}
+  .glass .stick{position:absolute;left:50%;top:50%;width:120px;height:92px;transform:translate(-50%,-50%);border-radius:14px;border:2px dashed rgba(255,255,255,.9);box-shadow:0 0 0 1px rgba(0,0,0,.1)}
+  .glass .stick.go{border-color:#0a84ff}
+  .glass .knob{position:absolute;left:50%;top:50%;width:26px;height:26px;margin:-13px 0 0 -13px;border-radius:50%;background:rgba(255,255,255,.45);border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+  .glass .stick.go .knob{background:rgba(10,132,255,.85)}
+  /* ---------- 摄像头小窗里的头 ---------- */
+  .cam{position:absolute;width:150px;height:150px;border-radius:50%;background:radial-gradient(circle at 50% 35%,#e9eefc,#c7d2f0);border:3px solid rgba(255,255,255,.85);box-shadow:0 12px 30px rgba(0,0,0,.3);overflow:hidden}
+  .cam svg{position:absolute;inset:0}
+  .camlabel{position:absolute;font-size:13px;color:#fff;background:rgba(20,20,30,.55);padding:3px 10px;border-radius:999px;white-space:nowrap}
+  .key{display:inline-flex;align-items:center;justify-content:center;min-width:64px;height:48px;padding:0 14px;border-radius:10px;background:#fff;color:#222;font-weight:700;font-size:18px;
+       box-shadow:0 4px 0 #c9cbd6,0 8px 20px rgba(0,0,0,.18);border:1px solid #d9dbe5;transition:transform .08s,box-shadow .08s}
+  .key.down{transform:translateY(3px);box-shadow:0 1px 0 #c9cbd6,0 3px 8px rgba(0,0,0,.15)}
+  .plus{font-size:20px;color:#fff;font-weight:700;margin:0 8px;text-shadow:0 1px 4px rgba(0,0,0,.3)}
+  .toast{position:absolute;padding:10px 18px;border-radius:999px;background:rgba(30,30,32,.75);color:#fff;font-size:16px;backdrop-filter:blur(12px);opacity:0;transition:opacity .2s}
+  .cap{position:absolute;left:0;right:0;text-align:center;color:#1d1d1f}
+
+  /* ---------- 封面 ---------- */
+  #hero{width:1280px;height:640px;background:radial-gradient(900px 500px at 0% 0%,#e8f0ff,transparent),radial-gradient(700px 500px at 100% 100%,#ffe8ef,transparent),#fbfbfd}
+  #hero .left{position:absolute;left:70px;top:88px;width:500px}
+  #hero img{width:96px;height:96px;border-radius:22px;box-shadow:0 10px 30px rgba(47,111,222,.3)}
+  #hero h1{font-size:64px;font-weight:800;letter-spacing:-.5px;margin-top:22px;color:#111}
+  #hero h1 span{display:block;font-weight:700;color:#2f6fde;font-size:44px;margin-top:2px}
+  #hero p{font-size:24px;color:#333;margin-top:14px;line-height:1.5}
+  #hero p.en{font-size:18px;color:#777;margin-top:6px}
+  #hero .tags{margin-top:26px;display:flex;gap:10px;flex-wrap:wrap}
+  #hero .tags span{font-size:15px;padding:6px 14px;border-radius:999px;background:#fff;border:1px solid #e3e5ee;color:#444}
+
+  /* ---------- 三步 ---------- */
+  #steps{width:1600px;height:640px;background:#fbfbfd}
+  #steps h2{position:absolute;left:0;right:0;top:44px;text-align:center;font-size:40px;font-weight:800;color:#111}
+  #steps h2 small{display:block;font-size:18px;color:#888;font-weight:400;margin-top:6px}
+  .step{position:absolute;top:170px;width:460px;height:400px;border-radius:24px;background:#fff;border:1px solid #e8e9f0;box-shadow:0 10px 30px rgba(0,0,0,.06);overflow:hidden}
+  .step .n{position:absolute;left:24px;top:20px;width:40px;height:40px;border-radius:50%;background:#2f6fde;color:#fff;font-weight:800;font-size:20px;display:flex;align-items:center;justify-content:center}
+  .step .t{position:absolute;left:0;right:0;bottom:26px;text-align:center}
+  .step .t b{display:block;font-size:26px;color:#111}
+  .step .t span{display:block;font-size:16px;color:#777;margin-top:4px}
+  .step .t em{display:block;font-style:normal;font-size:14px;color:#aaa;margin-top:2px}
+
+  /* ---------- 动图 ---------- */
+  #demo{width:1200px;height:750px;background:#fbfbfd}
+  #demo .cap{top:22px;font-size:30px;font-weight:800}
+  #demo .cap small{display:block;font-size:17px;color:#888;font-weight:400;margin-top:2px}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute"><filter id="lens" x="0" y="0" width="100%" height="100%">
+  <feTurbulence type="fractalNoise" baseFrequency="0.006 0.009" numOctaves="1" seed="7" result="n"/>
+  <feGaussianBlur in="n" stdDeviation="2" result="nb"/>
+  <feDisplacementMap in="SourceGraphic" in2="nb" scale="12" xChannelSelector="R" yChannelSelector="G"/></filter></svg>
+
+<template id="tplDesk">
+  <div class="win chatw"><div class="bar"><i></i><i></i><i></i><span data-t="chat"></span></div>
+    <div class="msg u" data-t="q"></div>
+    <div class="msg a" data-t="a"></div>
+    <div class="input"><span class="thumb"></span><span class="ph" data-t="ph"></span></div></div>
+  <div class="win artw"><div class="bar"><i></i><i></i><i></i><span data-t="doc"></span></div>
+    <div class="lines"><div class="l" style="width:62%"></div><div class="l" style="width:84%"></div><div class="l" style="width:48%"></div></div>
+    <div class="chart"><b style="height:70px"></b><b style="height:96px"></b><b style="height:44px"></b><b style="height:110px"></b></div>
+    <div class="lines" style="position:absolute;left:0;right:0;bottom:16px"><div class="l" style="width:76%"></div><div class="l" style="width:58%"></div></div></div>
+</template>
+
+<!-- 封面 -->
+<div id="hero" class="scene">
+  <div class="left">
+    <img src="../assets/icon.png">
+    <h1>LookSnap<span data-t="sub"></span></h1>
+    <p data-t="tag1"></p>
+    <div class="tags"><span>Windows</span><span data-t="mac"></span><span data-t="local"></span><span data-t="free"></span></div>
+  </div>
+  <div class="desk" style="left:600px;top:70px;width:620px;height:500px" data-desk="hero"></div>
+</div>
+
+<!-- 三步 -->
+<div id="steps" class="scene">
+  <h2 data-t="h2"></h2>
+  <div class="step" style="left:70px"><div class="n">1</div>
+    <div style="position:absolute;left:0;right:0;top:120px;display:flex;justify-content:center;align-items:center"><span class="key">Ctrl</span><span class="plus" style="color:#999;text-shadow:none">+</span><span class="key">Alt</span></div>
+    <div style="position:absolute;left:0;right:0;top:200px;text-align:center;color:#999;font-size:15px" data-t="tapRel"></div>
+    <div class="t"><b data-t="s1"></b><span data-t="s1d"></span></div></div>
+  <div class="step" style="left:570px"><div class="n">2</div>
+    <div class="cam" style="left:155px;top:70px"><svg viewBox="0 0 150 150" id="headS"></svg></div>
+    <div style="position:absolute;left:330px;top:130px;font-size:44px;color:#2f6fde">➜</div>
+    <div class="t"><b data-t="s2"></b><span data-t="s2d"></span></div></div>
+  <div class="step" style="left:1070px"><div class="n">3</div>
+    <div style="position:absolute;left:0;right:0;top:100px;display:flex;justify-content:center;align-items:center"><span class="key">Ctrl</span><span class="plus" style="color:#999;text-shadow:none">+</span><span class="key">Alt</span></div>
+    <div style="position:absolute;left:0;right:0;top:172px;text-align:center;color:#2f6fde;font-size:28px">⬇</div>
+    <div style="position:absolute;left:0;right:0;top:214px;display:flex;justify-content:center;align-items:center"><span class="key">Ctrl</span><span class="plus" style="color:#999;text-shadow:none">+</span><span class="key">V</span></div>
+    <div class="t"><b data-t="s3"></b><span data-t="s3d"></span></div></div>
+</div>
+
+<!-- 动图 -->
+<div id="demo" class="scene">
+  <div class="cap" id="dcap"></div>
+  <div class="desk" style="left:40px;top:110px;width:1120px;height:600px" data-desk="demo"></div>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+// 画一个会转的头：yaw 为正 = 向右转（从观众看），pitch 为正 = 低头
+function head(svg, yaw = 0, pitch = 0) {
+  // 卡通头像：短发、耳朵、肩膀；yaw>0 往右转，pitch>0 低头
+  const f = yaw / 22, p = pitch / 8;           // 归一化到 -1..1
+  const fx = f * 13, fy = p * 6;               // 五官平移
+  const earL = 1 - Math.max(0, f) * .9, earR = 1 - Math.max(0, -f) * .9;
+  svg.innerHTML = `
+    <defs>
+      <linearGradient id="sk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd9bd"/><stop offset="1" stop-color="#f3bf98"/></linearGradient>
+      <linearGradient id="hr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3b2b25"/><stop offset="1" stop-color="#241915"/></linearGradient>
+      <linearGradient id="sw" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5b8cff"/><stop offset="1" stop-color="#3d63d9"/></linearGradient>
+    </defs>
+    <path d="M 18 150 Q 22 112 75 108 Q 128 112 132 150 Z" fill="url(#sw)"/>
+    <path d="M 62 104 L 62 116 Q 75 124 88 116 L 88 104 Z" fill="#eab08b"/>
+    <ellipse cx="${36 + f * 4}" cy="${74 + fy}" rx="${7 * earL}" ry="10" fill="#f0b892"/>
+    <ellipse cx="${114 + f * 4}" cy="${74 + fy}" rx="${7 * earR}" ry="10" fill="#f0b892"/>
+    <ellipse cx="${75 + f * 4}" cy="${72 + fy * .5}" rx="${38 - Math.abs(f) * 2}" ry="43" fill="url(#sk)"/>
+    <path d="M ${35 + f * 3} ${70 + fy * .3}
+             Q ${33 + f * 2} 30 ${75 + f * 2} 26
+             Q ${119 + f * 2} 30 ${115 + f * 3} ${70 + fy * .3}
+             Q ${112 + f * 3} 50 ${98 + f * 6} 46
+             Q ${80 + f * 8} 54 ${58 + f * 8} 44
+             Q ${42 + f * 5} 50 ${35 + f * 3} ${70 + fy * .3} Z" fill="url(#hr)"/>
+    <path d="M ${54 + fx} ${60 + fy} Q ${61 + fx} ${56 + fy} ${68 + fx} ${60 + fy}" stroke="#3b2b25" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <path d="M ${82 + fx} ${60 + fy} Q ${89 + fx} ${56 + fy} ${96 + fx} ${60 + fy}" stroke="#3b2b25" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <ellipse cx="${61 + fx}" cy="${72 + fy}" rx="4.6" ry="5.6" fill="#2a2320"/><circle cx="${62.6 + fx}" cy="${70 + fy}" r="1.6" fill="#fff"/>
+    <ellipse cx="${89 + fx}" cy="${72 + fy}" rx="4.6" ry="5.6" fill="#2a2320"/><circle cx="${90.6 + fx}" cy="${70 + fy}" r="1.6" fill="#fff"/>
+    <path d="M ${75 + fx * 1.25} ${77 + fy} Q ${72 + fx * 1.35} ${88 + fy} ${77 + fx * 1.3} ${89 + fy}" stroke="#d99a74" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+    <ellipse cx="${52 + fx * .9}" cy="${86 + fy}" rx="6" ry="3.5" fill="#ff9e9e" opacity=".35"/>
+    <ellipse cx="${98 + fx * .9}" cy="${86 + fy}" rx="6" ry="3.5" fill="#ff9e9e" opacity=".35"/>
+    <path d="M ${66 + fx} ${97 + fy} Q ${75 + fx} ${104 + fy} ${84 + fx} ${97 + fy}" stroke="#b5654a" stroke-width="2.6" fill="none" stroke-linecap="round"/>`;
+}
+function fillT(root) { root.querySelectorAll('[data-t]').forEach(e => e.innerHTML = T[e.dataset.t]); }
+function buildDesk(el) {
+  el.innerHTML = $('#tplDesk').innerHTML; fillT(el);
+  const W = el.clientWidth, H = el.clientHeight;
+  Object.assign(el.querySelector('.chatw').style, { left: W * .04 + 'px', top: H * .08 + 'px', width: W * .40 + 'px', height: H * .84 + 'px' });
+  Object.assign(el.querySelector('.artw').style, { left: W * .48 + 'px', top: H * .12 + 'px', width: W * .48 + 'px', height: H * .76 + 'px' });
+  const ch = el.querySelector('.chart'); Object.assign(ch.style, { left: '18px', top: H * .76 * .30 + 'px' });
+  const g = document.createElement('div'); g.className = 'glass';
+  g.innerHTML = '<div class="rim"></div><div class="sheen"></div><div class="edge"></div><div class="stick"><div class="knob"></div></div>';
+  el.appendChild(g); return g;
+}
+function place(g, x, y, w, h) { Object.assign(g.style, { left: x - w / 2 + 'px', top: y - h / 2 + 'px', width: w + 'px', height: h + 'px' }); }
+const ease = t => t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+const lerp = (a, b, t) => a + (b - a) * t, seg = (t, a, b) => Math.min(1, Math.max(0, (t - a) / (b - a)));
+
+const LANG = (location.hash.split('-')[1] || 'zh');
+const I = {
+  zh: { chat: 'AI 对话', q: '帮我看看这张图，第三季度为什么掉了？', a: '好的，把图发给我吧。', ph: '输入消息…', typed: '这张图里第三季度…', doc: '季度报告.pdf',
+    sub: '看哪截哪', tag1: '转一下头就能截图。<br>不用鼠标，一只手搞定。', mac: 'macOS（测试版）', local: '本地运行 · 不上传', free: '开源免费',
+    h2: '三步截图', tapRel: '按下再松开', s1: '按一下快捷键', s1d: '框出现在鼻子指的地方', s2: '转一下头', s2d: '框慢慢跟过去，头回正就停',
+    s3: '再按一下，截好', s3d: '在聊天框里 Ctrl+V，发给 AI', camYou: '摄像头里的你', copied: '已复制到剪贴板 ✓',
+    caps: [[0, '按一下 Ctrl+Alt', '框出现在鼻子指的地方'], [1.3, '转一下头', '框慢慢跟过去，头回正就停'], [3.9, '再按一下 Ctrl+Alt', '截好了，已经在剪贴板里'], [5.0, 'Ctrl+V 发给 AI', '微信、Claude、ChatGPT 都能贴']] },
+  en: { chat: 'AI Chat', q: 'Why did Q3 drop in this chart?', a: 'Sure, send me the chart.', ph: 'Message…', typed: 'Look at Q3 here…', doc: 'Quarterly report.pdf',
+    sub: 'Snap where you look', tag1: 'Turn your head to take a screenshot.<br>No mouse. One hand.', mac: 'macOS (beta)', local: '100% local', free: 'Open source',
+    h2: 'Three steps, one hand', tapRel: 'press and release', s1: 'Tap the shortcut', s1d: 'A frame appears where your nose points', s2: 'Turn your head', s2d: 'The frame glides; face forward to stop',
+    s3: 'Tap again, done', s3d: 'Ctrl+V into any AI chat', camYou: 'You, on camera', copied: 'Copied to clipboard ✓',
+    caps: [[0, 'Tap Ctrl+Alt', 'A frame appears where your nose points'], [1.3, 'Turn your head', 'The frame glides; face forward to stop'], [3.9, 'Tap Ctrl+Alt again', 'Captured, now on your clipboard'], [5.0, 'Ctrl+V to your AI', 'Works in ChatGPT, Claude, Slack…']] } }[LANG];
+const T = I;
+document.documentElement.lang = LANG === 'en' ? 'en' : 'zh-CN';
+const scene = location.hash.slice(1).split('-')[0] || 'hero';
+document.getElementById(scene).classList.add('on'); fillT(document);
+
+if (scene === 'hero') {
+  const d = $('[data-desk=hero]'), g = buildDesk(d);
+  const ch = d.querySelector('.chart').getBoundingClientRect(), dr = d.getBoundingClientRect();
+  place(g, ch.left - dr.left + ch.width / 2, ch.top - dr.top + ch.height / 2, ch.width + 60, ch.height + 50);
+  g.querySelector('.stick').style.display = 'none';
+  const cam = document.createElement('div'); cam.className = 'cam'; cam.style.cssText = 'left:470px;top:350px;width:120px;height:120px';
+  cam.innerHTML = '<svg viewBox="0 0 150 150"></svg>'; d.appendChild(cam); head(cam.querySelector('svg'), 16, 4);
+}
+if (scene === 'steps') head($('#headS'), 18, 0);
+
+if (scene === 'demo') {
+  const d = $('[data-desk=demo]'), g = buildDesk(d), dr = d.getBoundingClientRect();
+  const ch = d.querySelector('.chart').getBoundingClientRect();
+  const end = { x: ch.left - dr.left + ch.width / 2, y: ch.top - dr.top + ch.height / 2 };
+  const start = { x: d.clientWidth * .46, y: d.clientHeight * .42 }, BW = ch.width + 70, BH = ch.height + 60;
+  const cam = document.createElement('div'); cam.className = 'cam'; cam.style.cssText = `left:${d.clientWidth - 180}px;top:${d.clientHeight - 175}px`;
+  cam.innerHTML = '<svg viewBox="0 0 150 150"></svg>'; d.appendChild(cam);
+  const lbl = document.createElement('div'); lbl.className = 'camlabel'; lbl.textContent = T.camYou; lbl.style.cssText = `left:${d.clientWidth - 158}px;top:${d.clientHeight - 210}px`; d.appendChild(lbl);
+  const keys = document.createElement('div'); keys.style.cssText = `position:absolute;left:0;right:0;bottom:22px;display:flex;justify-content:center;align-items:center`;
+  keys.innerHTML = '<span class="key" id="k1">Ctrl</span><span class="plus">+</span><span class="key" id="k2">Alt</span>'; d.appendChild(keys);
+  const toast = document.createElement('div'); toast.className = 'toast'; toast.textContent = T.copied; toast.style.cssText += `left:50%;transform:translateX(-50%);top:20px`; d.appendChild(toast);
+  const thumb = d.querySelector('.thumb'); thumb.innerHTML = '<div style="display:flex;align-items:flex-end;gap:3px;height:100%;padding:3px 5px"><b style="width:8px;height:40%;background:#5b8cff"></b><b style="width:8px;height:60%;background:#5b8cff"></b><b style="width:8px;height:28%;background:#f4511e"></b><b style="width:8px;height:75%;background:#5b8cff"></b></div>';
+  const caps = T.caps;
+  window.setT = t => {
+    const c = caps.filter(c => t >= c[0]).pop(); $('#dcap').innerHTML = `${c[1]}<small>${c[2]}</small>`;
+    // 按键：0.3 和 3.9 秒按 Ctrl+Alt，5.0 秒按 Ctrl+V
+    const press = (t > .25 && t < .55) || (t > 3.85 && t < 4.15) || (t > 5.0 && t < 5.3);
+    $('#k2').textContent = t >= 4.9 ? 'V' : 'Alt';
+    $('#k1').classList.toggle('down', press); $('#k2').classList.toggle('down', press);
+    g.style.display = t < .5 ? 'none' : 'block'; g.style.opacity = Math.min(1, (t - .5) / .2);
+    // 头：1.3~2.0 转向右下；2.0~3.3 保持；3.3~3.7 回正
+    const turn = ease(seg(t, 1.3, 1.9)) - ease(seg(t, 3.2, 3.6));
+    const yaw = 22 * turn, pitch = 8 * turn; head(cam.querySelector('svg'), yaw, pitch);
+    // 框：头偏出不动区后才开始挪（1.6~3.4）
+    const m = ease(seg(t, 1.65, 3.45));
+    place(g, lerp(start.x, end.x, m), lerp(start.y, end.y, m), BW, BH);
+    const st = g.querySelector('.stick'); st.classList.toggle('go', turn > .4);
+    st.querySelector('.knob').style.transform = `translate(${turn * 50}px, ${turn * 22}px)`;
+    st.style.display = t > 3.95 ? 'none' : 'block';
+    g.classList.toggle('done', t > 3.95);
+    if (t > 4.9) g.style.opacity = Math.max(0, 1 - (t - 4.9) / .3);
+    toast.style.opacity = t > 4.0 && t < 5.0 ? 1 : 0;
+    thumb.classList.toggle('on', t > 5.15); d.querySelector('.ph').textContent = t > 5.15 ? T.typed : T.ph;
+  };
+  setT(0);
+}
+</script>
+</body>
+</html>

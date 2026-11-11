@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>LookSnap 设置</title>
+<style>
+  :root{--bg:#f2f2f7;--card:rgba(255,255,255,.82);--ink:#1d1d1f;--muted:#6e6e73;--line:rgba(0,0,0,.08);--accent:#0a84ff;--ok:#34c759}
+  @media (prefers-color-scheme: dark){:root{--bg:#1c1c1e;--card:rgba(44,44,46,.82);--ink:#f5f5f7;--muted:#a1a1a6;--line:rgba(255,255,255,.1)}}
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0}
+  body{background:var(--bg);color:var(--ink);font:14px/1.55 -apple-system,"Segoe UI","Microsoft YaHei",sans-serif;
+       background-image:radial-gradient(700px 360px at 0% -10%,rgba(10,132,255,.16),transparent),radial-gradient(600px 360px at 100% 0%,rgba(52,199,89,.10),transparent)}
+  .app{display:grid;grid-template-columns:400px 1fr;height:100%}
+  .left{overflow:auto;padding:20px 18px 24px 22px}
+  .right{padding:20px 22px 22px 8px;display:flex;flex-direction:column;min-width:0}
+  header{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+  header img{width:44px;height:44px;border-radius:11px}
+  h1{font-size:19px;margin:0}
+  header p{margin:0;color:var(--muted);font-size:12.5px}
+  h2{font-size:12px;font-weight:600;color:var(--muted);margin:16px 4px 6px;letter-spacing:.02em}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:2px 14px;
+        -webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);box-shadow:0 1px 3px rgba(0,0,0,.04)}
+  .row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+  .row:last-child{border-bottom:0}
+  .row .t{flex:1;min-width:0}
+  .row .t small{display:block;color:var(--muted);font-size:12px;line-height:1.45}
+  input[type=range]{width:130px;accent-color:var(--accent)}
+  .val{width:46px;text-align:right;color:var(--muted);font-variant-numeric:tabular-nums}
+  select{font:inherit;max-width:200px;padding:5px 8px;border-radius:8px;border:1px solid var(--line);background:rgba(127,127,127,.08);color:var(--ink)}
+  .kbd{display:inline-block;padding:3px 10px;border-radius:8px;border:1px solid var(--line);background:rgba(127,127,127,.08);font-weight:600;min-width:84px;text-align:center}
+  .kbd.rec{border-color:var(--accent);color:var(--accent)}
+  button{font:inherit;border:0;border-radius:9px;padding:6px 14px;background:rgba(127,127,127,.14);color:var(--ink);cursor:pointer}
+  button.primary{background:var(--accent);color:#fff}
+  .switch{position:relative;width:42px;height:25px;flex:none}
+  .switch input{opacity:0;width:0;height:0}
+  .switch span{position:absolute;inset:0;border-radius:999px;background:rgba(127,127,127,.3);transition:.2s;cursor:pointer}
+  .switch span::after{content:"";position:absolute;left:2px;top:2px;width:21px;height:21px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:.2s}
+  .switch input:checked+span{background:var(--ok)}
+  .switch input:checked+span::after{transform:translateX(17px)}
+  .welcome{background:linear-gradient(135deg,rgba(10,132,255,.14),rgba(52,199,89,.10));border:1px solid rgba(10,132,255,.25);border-radius:14px;padding:12px 14px;margin-bottom:6px;display:none}
+  .welcome b{display:block;font-size:14.5px;margin-bottom:2px}
+  .foot{color:var(--muted);font-size:12px;line-height:1.6;margin:14px 4px 0}
+  .foot a{color:var(--accent);cursor:pointer}
+  #camPrev{width:100%;aspect-ratio:4/3;border-radius:10px;overflow:hidden;background:#000;margin:2px 0 10px;position:relative;display:none}
+  #camPrev video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
+  #camTag{position:absolute;left:8px;bottom:8px;font-size:12px;color:#fff;background:rgba(0,0,0,.45);padding:2px 8px;border-radius:999px}
+
+  /* ---------- 右边：试一试 ---------- */
+  .stageHead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
+  .stageHead h3{margin:0;font-size:16px}
+  .stageHead small{display:block;color:var(--muted);font-size:12.5px;font-weight:400}
+  #stageWrap{flex:1;min-height:0;display:flex;align-items:center;justify-content:center}
+  #stage{position:relative;border-radius:14px;overflow:hidden;box-shadow:0 10px 40px rgba(0,0,0,.18),0 0 0 1px rgba(0,0,0,.08);
+         background:linear-gradient(135deg,#7aa7ff 0%,#9b8cff 45%,#ff9fb2 100%)}
+  /* 假桌面：几个窗口和卡片，用来看框的效果 */
+  .win{position:absolute;border-radius:10px;background:rgba(255,255,255,.92);box-shadow:0 8px 24px rgba(0,0,0,.18);overflow:hidden}
+  .win .bar{height:18px;background:rgba(0,0,0,.05);display:flex;gap:5px;align-items:center;padding-left:8px}
+  .win .bar i{width:7px;height:7px;border-radius:50%;background:#ff5f57}.win .bar i:nth-child(2){background:#febc2e}.win .bar i:nth-child(3){background:#28c840}
+  .win .ln{height:7px;border-radius:4px;background:rgba(0,0,0,.10);margin:8px 10px}
+  .win .chip{display:inline-block;width:28%;height:44px;margin:6px 0 0 4%;border-radius:8px;background:linear-gradient(135deg,#e8f0ff,#dfe9ff)}
+  /* 玻璃框（跟真截图时一样的样式） */
+  #gbox{position:absolute;border-radius:12px;cursor:move;touch-action:none}
+  #grim{position:absolute;inset:0;border-radius:12px;padding:7px;pointer-events:none;
+        -webkit-backdrop-filter:url(#lens) saturate(1.35) brightness(1.07);backdrop-filter:url(#lens) saturate(1.35) brightness(1.07);
+        -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
+  #gsheen{position:absolute;inset:0;border-radius:12px;padding:7px;pointer-events:none;
+          background:linear-gradient(135deg,rgba(255,255,255,.45),rgba(255,255,255,.06) 28%,rgba(255,255,255,0) 60%,rgba(255,255,255,.2));
+          -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
+  #gedge{position:absolute;inset:0;border-radius:12px;pointer-events:none;border:1px solid rgba(255,255,255,.85);
+         box-shadow:inset 0 1px 1.5px rgba(255,255,255,.85),0 0 0 .5px rgba(0,0,0,.28),0 10px 30px rgba(0,0,0,.2)}
+  .h{position:absolute;width:14px;height:14px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.35),0 0 0 1px rgba(0,0,0,.1)}
+  .h.nw{left:-7px;top:-7px;cursor:nwse-resize}.h.ne{right:-7px;top:-7px;cursor:nesw-resize}
+  .h.sw{left:-7px;bottom:-7px;cursor:nesw-resize}.h.se{right:-7px;bottom:-7px;cursor:nwse-resize}
+  #gsize{position:absolute;left:0;top:-28px;font-size:11.5px;color:#fff;background:rgba(30,30,32,.55);padding:2px 9px;border-radius:999px;white-space:nowrap}
+  #gstick{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);border-radius:10px;border:1.5px dashed rgba(255,255,255,.85);
+          box-shadow:0 0 0 1px rgba(0,0,0,.12);display:none;pointer-events:none}
+  #gstick.go{border-color:rgba(10,132,255,.95)}
+  #gknob{position:absolute;left:50%;top:50%;width:20px;height:20px;margin:-10px 0 0 -10px;border-radius:50%;background:rgba(255,255,255,.4);
+         border:1.5px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+  #gstick.go #gknob{background:rgba(10,132,255,.8)}
+  .seg{display:flex;padding:3px;border-radius:10px;background:rgba(127,127,127,.16)}
+  .seg button{padding:4px 12px;border-radius:8px;background:transparent;font-weight:600;color:var(--muted)}
+  .seg button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.15)}
+  .stats{display:flex;gap:18px;color:var(--muted);font-size:12.5px;margin-top:10px;justify-content:center;flex-wrap:wrap}
+  .stats b{color:var(--ink);font-variant-numeric:tabular-nums}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <filter id="lens" x="0" y="0" width="100%" height="100%">
+    <feTurbulence type="fractalNoise" baseFrequency="0.008 0.012" numOctaves="1" seed="7" result="n"/>
+    <feGaussianBlur in="n" stdDeviation="2" result="nb"/>
+    <feDisplacementMap in="SourceGraphic" in2="nb" scale="8" xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
+</svg>
+<div class="app">
+<div class="left">
+  <header>
+    <img src="../assets/icon.png" alt="">
+    <div style="flex:1"><h1 data-i="appName"></h1><p data-i="tagline"></p></div>
+  </header>
+
+  <div class="welcome" id="welcome">
+    <b data-i="welcomeTitle"></b><span data-i="welcomeBody"></span>
+    <div style="margin-top:8px"><button class="primary" data-act="calib" data-i="startCalib"></button></div>
+  </div>
+
+  <h2 data-i="secHotkey"></h2>
+  <div class="card">
+    <div class="row"><div class="t"><span data-i="hotkey"></span><small data-i="hotkeyHint"></small></div>
+      <span class="kbd" id="hk">—</span><button id="hkBtn" data-i="change"></button></div>
+  </div>
+
+  <h2 data-i="secCamera"></h2>
+  <div class="card">
+    <div class="row"><div class="t" data-i="whichCamera"></div><select id="cam"></select></div>
+    <div id="camPrev"><span id="camTag"></span></div>
+    <div class="row"><div class="t"><span data-i="calib"></span><small data-i="calibHint"></small></div>
+      <button data-act="calib" data-i="recalib"></button></div>
+  </div>
+
+  <h2 data-i="secHead"></h2>
+  <div class="card">
+    <div class="row"><div class="t"><span data-i="deadzone"></span><small data-i="deadzoneHint"></small></div>
+      <input type="range" id="deadzone" min="1" max="6" step="0.5"><span class="val" id="deadzoneV"></span></div>
+    <div class="row"><div class="t"><span data-i="speed"></span><small data-i="speedHint"></small></div>
+      <input type="range" id="speed" min="0.3" max="3" step="0.1"><span class="val" id="speedV"></span></div>
+  </div>
+
+  <h2><span data-i="secBox"></span><span style="font-weight:400" data-i="secBoxHint"></span></h2>
+  <div class="card">
+    <div class="row"><div class="t" data-i="boxW"></div><input type="range" id="boxW" min="0.08" max="0.9" step="0.01"><span class="val" id="boxWV"></span></div>
+    <div class="row"><div class="t" data-i="boxH"></div><input type="range" id="boxH" min="0.08" max="0.9" step="0.01"><span class="val" id="boxHV"></span></div>
+  </div>
+
+  <h2 data-i="secOther"></h2>
+  <div class="card">
+    <div class="row"><div class="t"><span data-i="autoPaste"></span><small data-i="autoPasteHint"></small></div>
+      <label class="switch"><input type="checkbox" id="autoPaste"><span></span></label></div>
+    <div class="row"><div class="t"><span data-i="showStick"></span><small data-i="showStickHint"></small></div>
+      <label class="switch"><input type="checkbox" id="showStick"><span></span></label></div>
+    <div class="row"><div class="t"><span data-i="keepCamera"></span><small data-i="keepCameraHint"></small></div>
+      <label class="switch"><input type="checkbox" id="keepCamera"><span></span></label></div>
+    <div class="row"><div class="t" data-i="login"></div>
+      <label class="switch"><input type="checkbox" id="login"><span></span></label></div>
+  </div>
+
+  <div class="foot">
+    <span data-i="privacy"></span><br>
+    <span data-i="quitHint"></span> <span id="ver"></span> · <a data-url="https://github.com/chaslab/looksnap" data-i="homepage"></a>
+  </div>
+</div>
+
+<div class="right">
+  <div class="stageHead">
+    <h3><span data-i="tryTitle"></span><small data-i="tryHint"></small></h3>
+    <div style="display:flex;gap:10px;align-items:center;flex:none">
+      <div class="seg" id="langSeg"><button data-lang="zh">中文</button><button data-lang="en">EN</button></div>
+      <button class="primary" id="tryBtn"></button></div>
+  </div>
+  <div id="stageWrap"><div id="stage">
+    <div class="win" style="left:6%;top:8%;width:46%;height:52%"><div class="bar"><i></i><i></i><i></i></div>
+      <div class="ln" style="width:70%"></div><div class="ln" style="width:85%"></div><div class="ln" style="width:55%"></div>
+      <span class="chip"></span><span class="chip"></span><span class="chip"></span></div>
+    <div class="win" style="left:56%;top:14%;width:38%;height:36%"><div class="bar"><i></i><i></i><i></i></div>
+      <div class="ln" style="width:60%"></div><div class="ln" style="width:80%"></div><div class="ln" style="width:40%"></div></div>
+    <div class="win" style="left:30%;top:64%;width:50%;height:28%"><div class="bar"><i></i><i></i><i></i></div>
+      <div class="ln" style="width:75%"></div><div class="ln" style="width:50%"></div></div>
+    <div id="gbox"><div id="grim"></div><div id="gsheen"></div><div id="gedge"></div><div id="gsize"></div>
+      <div id="gstick"><div id="gknob"></div></div>
+      <div class="h nw" data-h="nw"></div><div class="h ne" data-h="ne"></div><div class="h sw" data-h="sw"></div><div class="h se" data-h="se"></div></div>
+  </div></div>
+  <div class="stats"><span><span data-i="statFace"></span> <b id="sFace">—</b></span><span><span data-i="statOff"></span> <b id="sOff">—</b></span><span><span data-i="statJit"></span> <b id="sJit">—</b></span></div>
+</div>
+</div>
+
+<script type="module">
+import * as TR from './tracker.js';
+const { clamp, T } = TR;
+const $ = s => document.querySelector(s);
+let cfg = null, SW = 1920, SH = 1080, isMac = false, LBL = '';
+const I18N = await (await fetch('./i18n.json')).json();
+const t = (k, v = {}) => ((I18N[(cfg && cfg.lang) || 'zh'] || I18N.zh)[k] || k).replace(/\{(\w+)\}/g, (_, n) => v[n] ?? '');
+function applyLang() {
+  document.querySelectorAll('[data-i]').forEach(e => e.innerHTML = t(e.dataset.i));
+  document.documentElement.lang = cfg.lang === 'en' ? 'en' : 'zh-CN'; document.title = t('settingsTitle');
+  document.querySelectorAll('#langSeg button').forEach(b => b.classList.toggle('on', b.dataset.lang === cfg.lang));
+  $('#tryBtn').textContent = trying ? t('tryStop') : t('tryStart');
+  $('#ver').textContent = t('version') + ' ' + VER;
+}
+let VER = '';
+document.querySelectorAll('#langSeg button').forEach(b => b.onclick = () => { set({ lang: b.dataset.lang }); applyLang(); fillCams(); });
+const fmt = { speed: v => (+v).toFixed(1) + '×', deadzone: v => v + '°', boxW: v => Math.round(v * 100) + '%', boxH: v => Math.round(v * 100) + '%' };
+const set = patch => { Object.assign(cfg, patch); ls.send('cfg:set', patch); };
+
+ls.invoke('cfg:get').then(async d => {
+  cfg = d.cfg; SW = d.screen.width; SH = d.screen.height; isMac = d.mac;
+  $('#hk').textContent = d.label;
+  for (const k of Object.keys(fmt)) { $('#' + k).value = cfg[k]; $('#' + k + 'V').textContent = fmt[k](cfg[k]); }
+  for (const k of ['autoPaste', 'showStick', 'keepCamera']) $('#' + k).checked = !!cfg[k];
+  $('#login').checked = !!d.loginItem;
+  $('#welcome').style.display = cfg.calib ? 'none' : 'block';
+  VER = d.version; applyLang();
+  layoutStage(); fillCams();
+});
+ls.on('cfg', c => { cfg = c; $('#welcome').style.display = cfg.calib ? 'none' : 'block'; });
+
+for (const k of Object.keys(fmt)) $('#' + k).addEventListener('input', e => {
+  $('#' + k + 'V').textContent = fmt[k](e.target.value); set({ [k]: +e.target.value });
+  if (k === 'boxW' || k === 'boxH') drawG();
+});
+for (const k of ['autoPaste', 'showStick', 'keepCamera']) $('#' + k).addEventListener('change', e => set({ [k]: e.target.checked }));
+$('#login').addEventListener('change', e => ls.send('login:set', e.target.checked));
+document.querySelectorAll('[data-act=calib]').forEach(b => b.onclick = () => { stopTry(); ls.send('calib:open'); });
+document.querySelectorAll('[data-url]').forEach(a => a.onclick = () => ls.send('open:url', a.dataset.url));
+
+// ---------- 快捷键 ----------
+const names = () => ({ ctrl: isMac ? 'Control' : 'Ctrl', alt: isMac ? 'Option' : 'Alt', shift: 'Shift', meta: isMac ? 'Command' : 'Win' });
+$('#hkBtn').onclick = () => { $('#hk').textContent = t('pressKeys'); $('#hk').classList.add('rec'); ls.send('hotkey:record', true); };
+ls.on('hotkey:preview', keys => { $('#hk').textContent = keys.map(k => names()[k] || k).join(' + '); });
+ls.on('hotkey:done', d => { $('#hk').textContent = d.label; $('#hk').classList.remove('rec'); });
+
+// ---------- 摄像头 ----------
+$('#camPrev').prepend(TR.video);
+async function fillCams() {
+  try {
+    const cams = await TR.listCameras(), cur = TR.pickCamera(cams, cfg.cameraId), sel = $('#cam');
+    sel.innerHTML = cams.map(c => `<option value="${c.id}">${c.label.replace(/</g, '&lt;')}${c.virtual ? t('virtualTag') : ''}</option>`).join('');
+    sel.value = cur || '';
+  } catch (e) { $('#cam').innerHTML = `<option>${t('noCamera')}</option>`; }
+}
+$('#cam').addEventListener('change', async e => {
+  set({ cameraId: e.target.value });
+  if (TR.camIsOn()) { await TR.camOn(cfg.cameraId); }
+  else await preview();
+});
+async function preview() {   // 选摄像头时给 6 秒预览
+  try { await TR.camOn(cfg.cameraId); $('#camPrev').style.display = 'block'; $('#camTag').textContent = t('preview');
+    if (!trying) setTimeout(() => { if (!trying) { TR.camOff(); $('#camPrev').style.display = 'none'; } }, 6000); } catch {}
+}
+
+// ---------- 试一试：缩小的屏幕 + 可拖动的玻璃框 ----------
+let k = 0.4, g = { x: 0.5, y: 0.5 };     // 框中心（0~1）
+function layoutStage() {
+  const wrap = $('#stageWrap').getBoundingClientRect();
+  const w = Math.min(wrap.width, wrap.height * SW / SH);
+  k = w / SW; const S = $('#stage'); S.style.width = w + 'px'; S.style.height = (w * SH / SW) + 'px'; drawG();
+}
+addEventListener('resize', () => cfg && layoutStage());
+function drawG() {
+  if (!cfg) return;
+  const sw = SW * k, sh = SH * k, w = cfg.boxW * sw, h = cfg.boxH * sh;
+  g.x = clamp(g.x, w / 2 / sw, 1 - w / 2 / sw); g.y = clamp(g.y, h / 2 / sh, 1 - h / 2 / sh);
+  const B = $('#gbox'); B.style.width = w + 'px'; B.style.height = h + 'px';
+  B.style.left = (g.x * sw - w / 2) + 'px'; B.style.top = (g.y * sh - h / 2) + 'px';
+  $('#gsize').textContent = `${Math.round(cfg.boxW * SW)} × ${Math.round(cfg.boxH * SH)}`;
+}
+// 拖动：拖角改大小，拖框本身挪位置
+let drag = null;
+$('#gbox').addEventListener('pointerdown', e => {
+  const r = $('#stage').getBoundingClientRect();
+  drag = { h: e.target.dataset.h || null, r, sx: e.clientX, sy: e.clientY, g: { ...g }, w: cfg.boxW, hh: cfg.boxH };
+  $('#gbox').setPointerCapture(e.pointerId); e.preventDefault();
+});
+$('#gbox').addEventListener('pointermove', e => {
+  if (!drag) return;
+  const dx = (e.clientX - drag.sx) / drag.r.width, dy = (e.clientY - drag.sy) / drag.r.height;
+  if (!drag.h) { g.x = drag.g.x + dx; g.y = drag.g.y + dy; }
+  else {   // 对角固定，拖的那个角跟着鼠标
+    const sx = drag.h.includes('e') ? 1 : -1, sy = drag.h.includes('s') ? 1 : -1;
+    const w = clamp(drag.w + sx * dx, 0.08, 0.9), h = clamp(drag.hh + sy * dy, 0.08, 0.9);
+    g.x = drag.g.x + sx * (w - drag.w) / 2; g.y = drag.g.y + sy * (h - drag.hh) / 2;
+    cfg.boxW = +w.toFixed(3); cfg.boxH = +h.toFixed(3);
+    for (const kk of ['boxW', 'boxH']) { $('#' + kk).value = cfg[kk]; $('#' + kk + 'V').textContent = fmt[kk](cfg[kk]); }
+  }
+  drawG();
+});
+$('#gbox').addEventListener('pointerup', () => { if (drag && drag.h) ls.send('cfg:set', { boxW: cfg.boxW, boxH: cfg.boxH }); drag = null; });
+
+// ---------- 用转头试一试 ----------
+let trying = false, anchor = null, last = 0, kx = 0, ky = 0;
+$('#tryBtn').onclick = () => trying ? stopTry() : startTry();
+async function startTry() {
+  $('#tryBtn').textContent = t('opening');
+  try { await TR.modelReady; await TR.camOn(cfg.cameraId); }
+  catch (e) { $('#tryBtn').textContent = t('tryStart'); $('#sFace').textContent = t('camFail'); return; }
+  trying = true; anchor = null; last = performance.now(); kx = ky = 0;
+  $('#tryBtn').textContent = t('tryStop'); $('#gstick').style.display = 'block';
+  $('#camPrev').style.display = 'block'; $('#camTag').textContent = t('testing');
+  $('#sFace').textContent = t('holdStill');
+}
+function stopTry() {
+  if (!trying) return; trying = false; TR.camOff();
+  $('#tryBtn').textContent = t('tryStart'); $('#gstick').style.display = 'none'; $('#camPrev').style.display = 'none';
+}
+function loop() {
+  const now = performance.now(); TR.track(now);
+  if (trying) {
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    const ok = TR.faceOk(now);
+    $('#sFace').textContent = ok ? (anchor ? t('faceOk') : t('holdStill')) : t('noFace');
+    if (ok && !anchor && T.hist.length >= 4) { anchor = TR.avgPose(250); }
+    if (ok && anchor && T.pose) {
+      // 指示器按缩小比例画；框的移动速度也按缩小比例，这样感觉跟真截图时一样
+      const j = TR.joystick(anchor, cfg, dt, k), sc = Math.max(0.35, k * 1.4);
+      const S = $('#gstick'); S.style.width = j.zw * 2 * sc + 'px'; S.style.height = j.zh * 2 * sc + 'px'; S.classList.toggle('go', j.moving);
+      kx += (clamp(j.dx * TR.KX, -j.zw * 1.6, j.zw * 1.6) - kx) * 0.12; ky += (clamp(j.dy * TR.KY, -j.zh * 1.6, j.zh * 1.6) - ky) * 0.12;
+      $('#gknob').style.transform = `translate(${kx * sc}px, ${ky * sc}px)`;
+      g.x += j.mx / (SW * k); g.y += j.my / (SH * k); drawG();
+      $('#sOff').textContent = t('offFmt', { x: j.dx.toFixed(1), y: j.dy.toFixed(1) });
+      const m = a => a.reduce((s, v) => s + v, 0) / a.length, sd = a => { const mu = m(a); return Math.sqrt(m(a.map(v => (v - mu) ** 2))); };
+      if (T.hist.length > 10) $('#sJit').textContent = Math.hypot(sd(T.hist.map(p => p.ryaw)), sd(T.hist.map(p => p.rpitch))).toFixed(1) + '°';
+    }
+  }
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+addEventListener('keydown', e => { if (e.key === ' ' && trying) { anchor = TR.avgPose(250); e.preventDefault(); } });
+</script>
+</body>
+</html>

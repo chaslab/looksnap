@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>LookSnap</title>
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:-apple-system,"Segoe UI","Microsoft YaHei",sans-serif;cursor:none;user-select:none}
+  .layer{position:fixed;inset:0;display:none}
+  .on{display:block}
+
+  /* ---------- 瞄准：屏幕保持原样，只有一块玻璃框 ---------- */
+  #bg{position:fixed;inset:0;background-size:100% 100%}
+  #box{position:fixed;left:0;top:0;border-radius:16px}
+  /* 玻璃边缘：只在框内侧一圈做轻微折射，中间完全不动 */
+  #rim{position:absolute;inset:0;border-radius:16px;
+       -webkit-backdrop-filter:blur(.6px) saturate(1.35) brightness(1.07);backdrop-filter:blur(.6px) saturate(1.35) brightness(1.07);
+       -webkit-backdrop-filter:url(#lens) saturate(1.35) brightness(1.07);backdrop-filter:url(#lens) saturate(1.35) brightness(1.07);
+       padding:9px;-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
+  #sheen{position:absolute;inset:0;border-radius:16px;padding:9px;pointer-events:none;
+         background:linear-gradient(135deg,rgba(255,255,255,.42),rgba(255,255,255,.06) 28%,rgba(255,255,255,0) 60%,rgba(255,255,255,.18));
+         -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
+  #edge{position:absolute;inset:0;border-radius:16px;pointer-events:none;border:1px solid rgba(255,255,255,.8);
+        box-shadow:inset 0 1px 1.5px rgba(255,255,255,.85),inset 0 -1px 1px rgba(0,0,0,.06),0 0 0 .5px rgba(0,0,0,.28),0 12px 36px rgba(0,0,0,.20);transition:border-color .2s}
+  #box.done #edge{border-color:#34c759;box-shadow:0 0 0 2px #34c759,0 12px 36px rgba(0,0,0,.2)}
+  #size{position:absolute;left:0;top:-36px;padding:3px 10px;border-radius:999px;font-size:12px;color:#fff;white-space:nowrap;
+        background:rgba(30,30,32,.5);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.25)}
+  /* 头部指示：虚线区 = 不动区，圆点 = 头现在偏了多少 */
+  #stick{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);border-radius:14px;border:1.5px dashed rgba(255,255,255,.8);
+         box-shadow:0 0 0 1px rgba(0,0,0,.12);opacity:.75;transition:border-color .2s}
+  #stick.go{border-color:rgba(10,132,255,.95)}
+  #knob{position:absolute;left:50%;top:50%;width:28px;height:28px;margin:-14px 0 0 -14px;border-radius:50%;
+        background:rgba(255,255,255,.35);border:1.5px solid rgba(255,255,255,.95);box-shadow:0 2px 10px rgba(0,0,0,.3);
+        -webkit-backdrop-filter:blur(6px) saturate(1.5);backdrop-filter:blur(6px) saturate(1.5);transition:background .2s}
+  #stick.go #knob{background:rgba(10,132,255,.75)}
+  #pill{position:fixed;left:50%;bottom:30px;transform:translateX(-50%);padding:9px 18px;border-radius:999px;color:#fff;font-size:14px;white-space:nowrap;
+        background:rgba(30,30,32,.5);-webkit-backdrop-filter:blur(20px) saturate(160%);backdrop-filter:blur(20px) saturate(160%);
+        border:1px solid rgba(255,255,255,.22);box-shadow:0 8px 30px rgba(0,0,0,.25)}
+  #pill b{font-weight:600}
+
+  /* ---------- 校准 ---------- */
+  #calib{background:radial-gradient(1200px 800px at 30% 20%,#2a3b66,#0f1424 70%)}
+  .tgt{position:absolute;width:76px;height:76px;margin:-38px 0 0 -38px;border-radius:50%;
+       background:conic-gradient(#3ddc84 calc(var(--p,0)*1turn),rgba(255,255,255,.12) 0);display:none;
+       box-shadow:0 0 0 1px rgba(255,255,255,.3),0 10px 40px rgba(0,0,0,.4)}
+  .tgt::after{content:"";position:absolute;inset:24px;border-radius:50%;background:#ff5a5f;border:3px solid #fff}
+  .tgt.on{display:block}
+  #chint{position:absolute;left:50%;top:64%;transform:translateX(-50%);width:80vw;text-align:center;color:#e8ecf5;font-size:20px;line-height:1.8}
+  #chint small{display:block;font-size:15px;color:#9fb0d0}
+  #cam{position:absolute;left:50%;top:22%;transform:translateX(-50%);width:240px;height:180px;border-radius:16px;overflow:hidden;
+       border:1px solid rgba(255,255,255,.3);box-shadow:0 10px 40px rgba(0,0,0,.4);background:#000}
+  #cam video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
+  #face{position:absolute;left:0;right:0;bottom:0;padding:5px;font-size:13px;color:#fff;background:rgba(0,0,0,.5);text-align:center}
+</style>
+</head>
+<body>
+<!-- 玻璃边缘的轻微折射 -->
+<svg width="0" height="0" style="position:absolute">
+  <filter id="lens" x="0" y="0" width="100%" height="100%">
+    <feTurbulence type="fractalNoise" baseFrequency="0.006 0.009" numOctaves="1" seed="7" result="n"/>
+    <feGaussianBlur in="n" stdDeviation="2" result="nb"/>
+    <feDisplacementMap in="SourceGraphic" in2="nb" scale="10" xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
+</svg>
+<div id="aim" class="layer">
+  <div id="bg"></div>
+  <div id="box"><div id="rim"></div><div id="sheen"></div><div id="edge"></div><div id="size"></div><div id="stick"><div id="knob"></div></div></div>
+  <div id="pill"></div>
+</div>
+<div id="calib" class="layer">
+  <div id="cam"><div id="face"></div></div>
+  <div class="tgt" id="tgt"></div>
+  <div id="chint"></div>
+</div>
+
+<script type="module">
+import * as TR from './tracker.js';
+const { clamp, T } = TR;
+const $ = s => document.querySelector(s);
+let cfg = null, W = innerWidth, H = innerHeight, mode = 'idle';
+const I18N = await (await fetch('./i18n.json')).json();
+const t = (k, v = {}) => ((I18N[(cfg && cfg.lang) || 'zh'] || I18N.zh)[k] || k).replace(/\{(\w+)\}/g, (_, n) => v[n] ?? '');
+ls.on('cfg', c => cfg = c);
+$('#cam').prepend(TR.video);
+const camLater = () => { if (!(cfg && cfg.keepCamera)) TR.camLater(20000); };
+
+setInterval(() => {            // 窗口隐藏时 requestAnimationFrame 不跑，所以用定时器
+  const now = performance.now(); TR.track(now);
+  if (mode === 'aim') aimStep(now); else if (mode === 'calib') calibStep(now);
+}, 16);
+
+// ---------- 瞄准 ----------
+let aim = null;
+ls.on('cam:warm', c => { cfg = c || cfg; TR.modelReady.then(() => TR.camOn(cfg && cfg.cameraId)).catch(e => console.error('cam', e)); });
+ls.on('aim:start', async d => {
+  cfg = d.cfg; W = d.w; H = d.h; mode = 'aim';
+  const url = 'data:image/jpeg;base64,' + d.image;
+  $('#bg').style.backgroundImage = `url(${url})`;
+  $('#box').classList.remove('done');
+  $('#stick').style.display = cfg.showStick ? 'block' : 'none';
+  $('#pill').innerHTML = t('pill', { key: d.label });
+  document.querySelectorAll('.layer').forEach(e => e.classList.remove('on')); $('#aim').classList.add('on');
+  aim = { x: W / 2, y: H / 2, w: W * cfg.boxW, h: H * cfg.boxH, anchor: null, last: performance.now(), kx: 0, ky: 0, since: performance.now() };
+  drawBox();
+  try { await TR.modelReady; await TR.camOn(cfg.cameraId); }
+  catch (e) { $('#pill').textContent = t('pillCamFail'); }
+});
+function aimStep(now) {
+  if (!aim) return;
+  const dt = Math.min(0.05, (now - aim.last) / 1000); aim.last = now;
+  if (!aim.anchor) {     // 出框后先等几帧，取鼻子指的位置作为起点
+    if (T.hist.length < 4 || now - T.faceSeen > 300) return;
+    const p = TR.avgPose(250); if (!p) return;
+    aim.anchor = p;
+    if (cfg.calib) { const s = TR.mapToScreen(cfg.calib, p); aim.x = s.x * W; aim.y = s.y * H; }
+    console.log('[ls] anchor', Math.round(now - aim.since), 'ms');
+    return drawBox();
+  }
+  if (!TR.faceOk(now)) return;
+  const j = TR.joystick(aim.anchor, cfg, dt);
+  const S = $('#stick'); S.style.width = j.zw * 2 + 'px'; S.style.height = j.zh * 2 + 'px'; S.classList.toggle('go', j.moving);
+  aim.kx += (clamp(j.dx * TR.KX, -j.zw * 1.6, j.zw * 1.6) - aim.kx) * 0.12;
+  aim.ky += (clamp(j.dy * TR.KY, -j.zh * 1.6, j.zh * 1.6) - aim.ky) * 0.12;
+  $('#knob').style.transform = `translate(${aim.kx}px, ${aim.ky}px)`;
+  aim.x += j.mx; aim.y += j.my;
+  drawBox();
+}
+function drawBox() {
+  aim.x = clamp(aim.x, aim.w / 2, W - aim.w / 2); aim.y = clamp(aim.y, aim.h / 2, H - aim.h / 2);
+  const B = $('#box'), l = aim.x - aim.w / 2, t = aim.y - aim.h / 2;
+  B.style.width = aim.w + 'px'; B.style.height = aim.h + 'px'; B.style.transform = `translate(${l}px, ${t}px)`;
+  $('#size').textContent = `${Math.round(aim.w)} × ${Math.round(aim.h)}`;
+  $('#size').style.top = t < 44 ? (aim.h + 10) + 'px' : '-36px';
+}
+ls.on('aim:confirm', () => {
+  if (mode !== 'aim' || !aim) return;
+  $('#box').classList.add('done');
+  ls.send('aim:rect', { x: aim.x - aim.w / 2, y: aim.y - aim.h / 2, w: aim.w, h: aim.h });
+});
+ls.on('aim:end', () => { mode = 'idle'; aim = null; camLater(); });
+
+// ---------- 校准：鼻子对准 5 个点，停稳 1 秒自动采集 ----------
+const CAL = [{ x: .5, y: .5 }, { x: .1, y: .12 }, { x: .9, y: .12 }, { x: .9, y: .88 }, { x: .1, y: .88 }];
+let ci = 0, cbuf = [], csamp = [];
+ls.on('calib:start', async d => {
+  cfg = d.cfg; W = d.w; H = d.h; mode = 'calib'; ci = 0; csamp = [];
+  document.querySelectorAll('.layer').forEach(e => e.classList.remove('on')); $('#calib').classList.add('on');
+  $('#chint').innerHTML = t('opening');
+  try { await TR.modelReady; await TR.camOn(cfg.cameraId); nextT(); }
+  catch (e) { $('#chint').innerHTML = t('calibCamFail'); }
+});
+ls.on('calib:abort', () => { mode = 'idle'; $('#tgt').classList.remove('on'); ls.send('calib:cancel'); camLater(); });
+function nextT() {
+  cbuf = []; const t = CAL[ci], el = $('#tgt');
+  el.style.left = t.x * 100 + '%'; el.style.top = t.y * 100 + '%'; el.style.setProperty('--p', 0); el.classList.add('on');
+  $('#chint').innerHTML = t('calibStep', { i: ci + 1, n: CAL.length });
+}
+function calibStep(now) {
+  $('#face').textContent = TR.faceOk(now) ? t('faceSeen') : t('faceLost');
+  if (!$('#tgt').classList.contains('on')) return;
+  const P = T.pose;
+  if (!P || !TR.faceOk(now)) { cbuf = []; $('#tgt').style.setProperty('--p', 0); return; }
+  if (!cbuf.length || cbuf[cbuf.length - 1].t !== P.t) cbuf.push({ yaw: P.ryaw, pitch: P.rpitch, t: P.t });
+  while (cbuf.length && now - cbuf[0].t > 1000) cbuf.shift();
+  const ys = cbuf.map(s => s.yaw), ps = cbuf.map(s => s.pitch);
+  const spread = Math.max(Math.max(...ys) - Math.min(...ys), Math.max(...ps) - Math.min(...ps));
+  const span = cbuf.length ? now - cbuf[0].t : 0;
+  const moved = ci === 0 || Math.hypot(P.ryaw - csamp[0].yaw, P.rpitch - csamp[0].pitch) > 3;
+  const ok = spread < 3.2 && moved;
+  $('#tgt').style.setProperty('--p', ok ? Math.min(1, span / 1000) : 0);
+  if (!ok) { if (spread >= 3.2) cbuf = cbuf.slice(-3); return; }
+  if (span >= 950) {
+    const med = a => { const s = [...a].sort((p, q) => p - q); return s[s.length >> 1]; };
+    csamp.push({ yaw: med(ys), pitch: med(ps), x: CAL[ci].x, y: CAL[ci].y });
+    if (++ci < CAL.length) return nextT();
+    $('#tgt').classList.remove('on');
+    const fit = TR.fitMap(csamp);
+    $('#chint').innerHTML = t('calibDone');
+    mode = 'idle';
+    setTimeout(() => { ls.send('calib:done', fit); camLater(); }, 1200);
+  }
+}
+</script>
+</body>
+</html>

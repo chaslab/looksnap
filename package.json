@@ -1,0 +1,63 @@
+{
+  "name": "looksnap",
+  "productName": "LookSnap",
+  "version": "0.1.0",
+  "description": "看哪截哪：转一下头就能截图，一只手搞定，截完直接贴进聊天框",
+  "main": "src/main.js",
+  "license": "MIT",
+  "author": "LookSnap contributors",
+  "scripts": {
+    "start": "electron .",
+    "dist:win": "electron-builder --win nsis",
+    "dist:mac": "electron-builder --mac dmg"
+  },
+  "dependencies": {
+    "@mediapipe/tasks-vision": "0.10.14",
+    "uiohook-napi": "1.5.5"
+  },
+  "devDependencies": {
+    "electron": "44.9.0",
+    "electron-builder": "26.17.0"
+  },
+  "build": {
+    "appId": "io.github.looksnap",
+    "productName": "LookSnap",
+    "npmRebuild": false,
+    "asarUnpack": [
+      "node_modules/uiohook-napi/**",
+      "src/gdi-capture.ps1"
+    ],
+    "files": [
+      "src/**",
+      "assets/**",
+      "package.json",
+      "node_modules/uiohook-napi/**",
+      "node_modules/node-gyp-build/**",
+      "node_modules/@mediapipe/tasks-vision/vision_bundle.mjs",
+      "node_modules/@mediapipe/tasks-vision/wasm/**"
+    ],
+    "win": {
+      "icon": "assets/icon.ico",
+      "target": "nsis"
+    },
+    "mac": {
+      "icon": "assets/icon.icns",
+      "category": "public.app-category.productivity",
+      "artifactName": "LookSnap-${version}-mac.dmg",
+      "extendInfo": {
+        "NSCameraUsageDescription": "LookSnap 用摄像头判断你的头朝向，画面只在本机处理，不上传。"
+      }
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "runAfterFinish": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "LookSnap",
+      "artifactName": "LookSnap-Setup-${version}.exe",
+      "installerIcon": "assets/icon.ico",
+      "uninstallerIcon": "assets/icon.ico"
+    }
+  }
+}
